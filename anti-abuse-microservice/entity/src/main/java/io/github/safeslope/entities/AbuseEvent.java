@@ -1,0 +1,1 @@
+package io.github.safeslope.entities;
