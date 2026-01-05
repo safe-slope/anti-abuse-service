@@ -7,6 +7,6 @@ public record EvaluateRequest(
         String lockerId,
         String resortId,
         String action,
-        Long timestamp,
+        Long timestamp
     
 ) {}
