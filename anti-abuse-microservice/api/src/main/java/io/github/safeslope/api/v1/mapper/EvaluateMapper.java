@@ -16,7 +16,7 @@ public class EvaluateMapper {
                 req.lockerId(),
                 req.resortId(),
                 req.action(),
-                req.timestamp(),
+                req.timestamp()
         );
     }
 

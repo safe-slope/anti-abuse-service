@@ -12,4 +12,9 @@ public interface AbuseEventRepository extends JpaRepository<AbuseEvent, Long> {
             String cardUid,
             Instant since
     );
+
+    long countByCardUidAndTimestampAfter(
+            String cardUid,
+            Instant since
+    );
 }
