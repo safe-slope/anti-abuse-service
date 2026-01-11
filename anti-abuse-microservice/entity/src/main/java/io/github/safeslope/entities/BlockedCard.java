@@ -12,7 +12,7 @@ import java.time.Instant;
 public class BlockedCard {
 
     @Id
-    private String cardUid;
+    private Integer skiTicketId;
 
     private Instant blockedUntil;
     private String reason;

@@ -14,8 +14,9 @@ public class EvaluateMapper {
         long ts = req.timestamp() != null ? req.timestamp() : System.currentTimeMillis();
 
         return new EvaluateCommand(
-                req.cardUid(),
+                req.skiTicketId(),
                 req.lockId(),
+                req.lockerId(),
                 req.resortId(),
                 req.action(),
                 ts

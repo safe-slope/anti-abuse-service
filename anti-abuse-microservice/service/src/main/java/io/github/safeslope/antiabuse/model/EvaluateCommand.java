@@ -1,9 +1,10 @@
 package io.github.safeslope.antiabuse.model;
 
 public record EvaluateCommand(
-        String cardUid,
-        String lockId,
-        String resortId,
-        String action,
+        Integer skiTicketId,
+        Integer lockId,
+        Integer lockerId,
+        Integer resortId,
+        Action action,
         long timestamp
 ) {}

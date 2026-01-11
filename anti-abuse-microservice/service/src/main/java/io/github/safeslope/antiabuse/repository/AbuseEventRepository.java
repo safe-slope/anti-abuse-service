@@ -8,13 +8,13 @@ import java.util.List;
 
 public interface AbuseEventRepository extends JpaRepository<AbuseEvent, Long> {
 
-    List<AbuseEvent> findByCardUidAndTimestampAfter(
-            String cardUid,
+    List<AbuseEvent> findBySkiTicketIdAndTimestampAfter(
+            Integer skiTicketId,
             Instant since
     );
 
-    long countByCardUidAndTimestampAfter(
-            String cardUid,
+    long countBySkiTicketIdAndTimestampAfter(
+            Integer skiTicketId,
             Instant since
     );
 }
