@@ -4,6 +4,8 @@ import io.github.safeslope.antiabuse.model.DecisionResult;
 import io.github.safeslope.antiabuse.model.EvaluateCommand;
 import io.github.safeslope.antiabuse.repository.AbuseEventRepository;
 import io.github.safeslope.antiabuse.repository.BlockedCardRepository;
+import io.github.safeslope.antiabuse.model.CardState;
+import io.github.safeslope.antiabuse.model.Decision;
 import io.github.safeslope.entities.AbuseEvent;
 import io.github.safeslope.entities.BlockedCard;
 import jakarta.transaction.Transactional;
@@ -16,7 +18,6 @@ import java.time.temporal.ChronoUnit;
 @Transactional
 public class AntiAbuseService {
 
-    //arbitrarno
     private static final int MAX_USES_PER_MINUTE = 3;
     private static final int BLOCK_MINUTES = 10;
 
@@ -32,16 +33,17 @@ public class AntiAbuseService {
     public DecisionResult evaluate(EvaluateCommand cmd) {
         Instant now = Instant.now();
 
-        // blocked card? deny
-        var blockedOpt = blockedCardRepository.findById(cmd.cardUid());
+        // blocked ticket? deny
+        var blockedOpt = blockedCardRepository.findById(cmd.skiTicketId());
         if (blockedOpt.isPresent()) {
             BlockedCard blocked = blockedOpt.get();
             Instant until = blocked.getBlockedUntil();
+
             if (until != null && until.isAfter(now)) {
                 return new DecisionResult(
-                        "DENY",
-                        "BLOCKED",
-                        blocked.getReason() != null ? blocked.getReason() : "Card is blocked",
+                        Decision.DENY,
+                        CardState.BLOCKED,
+                        blocked.getReason() != null ? blocked.getReason() : "Ticket is blocked",
                         until
                 );
             }
@@ -49,37 +51,38 @@ public class AntiAbuseService {
 
         // mark event
         AbuseEvent event = new AbuseEvent();
-        event.setCardUid(cmd.cardUid());
+        event.setSkiTicketId(cmd.skiTicketId());
         event.setLockId(cmd.lockId());
+        event.setLockerId(cmd.lockerId());
         event.setResortId(cmd.resortId());
-        event.setAction(cmd.action());
+        event.setAction(cmd.action().name()); // enum -> String
         event.setTimestamp(Instant.ofEpochMilli(cmd.timestamp()));
         abuseEventRepository.save(event);
 
         // suspicious use -> block
         Instant oneMinuteAgo = now.minus(1, ChronoUnit.MINUTES);
-        long recentUses = abuseEventRepository.countByCardUidAndTimestampAfter(cmd.cardUid(), oneMinuteAgo);
+        long recentUses = abuseEventRepository.countBySkiTicketIdAndTimestampAfter(cmd.skiTicketId(), oneMinuteAgo);
 
         if (recentUses >= MAX_USES_PER_MINUTE) {
             Instant blockUntil = now.plus(BLOCK_MINUTES, ChronoUnit.MINUTES);
 
             BlockedCard blocked = new BlockedCard();
-            blocked.setCardUid(cmd.cardUid());
+            blocked.setSkiTicketId(cmd.skiTicketId());
             blocked.setBlockedUntil(blockUntil);
             blocked.setReason("Too many requests in 1 minute");
             blockedCardRepository.save(blocked);
 
             return new DecisionResult(
-                    "DENY",
-                    "BLOCKED",
-                    "Card blocked due to abuse",
+                    Decision.DENY,
+                    CardState.BLOCKED,
+                    "Ticket blocked due to abuse",
                     blockUntil
             );
         }
 
         return new DecisionResult(
-                "ALLOW",
-                "ACTIVE",
+                Decision.ALLOW,
+                CardState.ACTIVE,
                 "OK",
                 null
         );

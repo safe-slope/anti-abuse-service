@@ -15,11 +15,13 @@ public class AbuseEvent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String cardUid;
-    private String lockId;
-    private String resortId;
+    private Integer skiTicketId;
+    private Integer lockId;
+    private Integer lockerId;
+    private Integer resortId;
     private String action;
+
     private Instant timestamp;
-    private int score;
+
     private String reason;
 }
