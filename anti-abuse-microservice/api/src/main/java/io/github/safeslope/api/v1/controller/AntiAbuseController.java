@@ -19,8 +19,8 @@ public class AntiAbuseController {
         this.evaluateMapper = evaluateMapper;
     }
 
-    @PostMapping("/evaluate")
-    public EvaluateResponse evaluate(@Valid @RequestBody EvaluateRequest req) {
+    @PostMapping("/abuse-verify")
+    public EvaluateResponse abuseVerify(@Valid @RequestBody EvaluateRequest req) {
         var cmd = evaluateMapper.toCommand(req);
         var result = antiAbuseService.evaluate(cmd);
         return evaluateMapper.toResponse(result);
