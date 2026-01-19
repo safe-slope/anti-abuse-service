@@ -1,0 +1,139 @@
+name: CI workflow
+
+# Configures this workflow to run every time a change is pushed to the branch called `main`.
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # 1. Check code quality in changed files
+  qodana:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: 'Qodana Scan'
+        uses: JetBrains/qodana-action@v2025.3
+        env:
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
+        with:
+          # When pr-mode is set to true, Qodana analyzes only the files that have been changed
+          pr-mode: true
+          use-caches: true
+          post-pr-comment: true
+          use-annotations: true
+          upload-result: false
+          push-fixes: 'none'
+
+  # 2. Build, run tests and upload JAR artifact
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and run tests
+        run: mvn -B clean package --file anti-abuse-microservice/pom.xml
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: anti-abuse-microservice/api/target/app.jar
+
+
+  # 3. Create a release using release-please
+  release-please:
+    needs: [ qodana, test ]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN  }}
+          config-file: 'release-please-config.json'
+          manifest-file: 'release-please-manifest.json'
+
+  # 4. Build and push Docker image to GitHub Packages
+  build-and-push-image:
+    needs: [ release-please, test ]
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: anti-abuse-microservice/api/target
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ needs.release-please.outputs.tag_name }}
+            ghcr.io/${{ github.repository }}:latest
+          labels: ${{ steps.meta.outputs.labels }}
+
+#      - name: Generate artifact attestation
+#        uses: actions/attest-build-provenance@v3
+#        with:
+#          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+#          subject-digest: ${{ steps.push.outputs.digest }}
+#          push-to-registry: true
+
+#      - name: Deploy to Kubernetes
+#        run: |
+#          kubectl set image deployment/my-app \
+#            my-container=ghcr.io/${{ github.repository }}:${{ needs.release-please.outputs.tag_name }}
+#          kubectl rollout status deployment/my-app
+#        env:
+#          KUBECONFIG: ${{ secrets.KUBECONFIG }}
