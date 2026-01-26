@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/safe-slope/anti-abuse-service/compare/anti-abuse-microservice-v1.1.0...anti-abuse-microservice-v1.1.1) (2026-01-26)
+
+
+### Bug Fixes
+
+* Simplify Dockerfile path for JAR file copying during runtime setup ([500053b](https://github.com/safe-slope/anti-abuse-service/commit/500053bb5627139b1246bd9954e9089af5868429))
+
 ## [1.1.0](https://github.com/safe-slope/anti-abuse-service/compare/anti-abuse-microservice-v1.0.0...anti-abuse-microservice-v1.1.0) (2026-01-26)
 
 
