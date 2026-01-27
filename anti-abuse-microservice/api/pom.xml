@@ -5,7 +5,7 @@
   <parent>
     <groupId>io.github.safeslope</groupId>
     <artifactId>anti-abuse-microservice</artifactId>
-    <version>1.1.2</version>
+    <version>1.2.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>api</artifactId>
@@ -22,6 +22,12 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!-- Actuator for monitoring and management -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
 
     <!-- JPA + Postgres -->
