@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2](https://github.com/safe-slope/anti-abuse-service/compare/anti-abuse-microservice-v1.1.1...anti-abuse-microservice-v1.1.2) (2026-01-27)
+
+
+### Bug Fixes
+
+* Remove `target` directory exclusion from .dockerignore ([671ffc1](https://github.com/safe-slope/anti-abuse-service/commit/671ffc1a5c6f6cef0cdaa3c56ba7fd5d3d7663ef))
+* Update database credentials in development properties ([c203e9a](https://github.com/safe-slope/anti-abuse-service/commit/c203e9a942eb2ea2d82004c31a1ed1823bcb69f7))
+
 ## [1.1.1](https://github.com/safe-slope/anti-abuse-service/compare/anti-abuse-microservice-v1.1.0...anti-abuse-microservice-v1.1.1) (2026-01-26)
 
 
