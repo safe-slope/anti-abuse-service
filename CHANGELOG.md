@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/safe-slope/anti-abuse-service/compare/anti-abuse-microservice-v1.2.0...anti-abuse-microservice-v1.2.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* Update GitHub Actions to refine conditional logic and ensure accurate job dependencies ([717b659](https://github.com/safe-slope/anti-abuse-service/commit/717b659724d797f2cfaa39e07823d0e642db357e))
+
 ## [1.2.0](https://github.com/safe-slope/anti-abuse-service/compare/anti-abuse-microservice-v1.1.2...anti-abuse-microservice-v1.2.0) (2026-01-27)
 
 
