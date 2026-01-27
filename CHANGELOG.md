@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/safe-slope/anti-abuse-service/compare/anti-abuse-microservice-v1.1.2...anti-abuse-microservice-v1.2.0) (2026-01-27)
+
+
+### Features
+
+* Add Spring Boot Actuator for health checks and monitoring ([144e7af](https://github.com/safe-slope/anti-abuse-service/commit/144e7af3627dd0f141c6b2862632d811182ca3d1))
+* Add Spring Boot Actuator for health checks and monitoring ([6708446](https://github.com/safe-slope/anti-abuse-service/commit/67084463768ad970c080f4b0be8d551d0d0bafd6))
+
 ## [1.1.2](https://github.com/safe-slope/anti-abuse-service/compare/anti-abuse-microservice-v1.1.1...anti-abuse-microservice-v1.1.2) (2026-01-27)
 
 
