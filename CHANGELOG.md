@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/safe-slope/anti-abuse-service/compare/anti-abuse-microservice-v1.2.1...anti-abuse-microservice-v1.2.2) (2026-01-29)
+
+
+### Bug Fixes
+
+* Change `ddl-auto` from `validate` to `update` in staging properties ([7a69641](https://github.com/safe-slope/anti-abuse-service/commit/7a6964180edb580ef1ad2e3491c74b757d461e84))
+
 ## [1.2.1](https://github.com/safe-slope/anti-abuse-service/compare/anti-abuse-microservice-v1.2.0...anti-abuse-microservice-v1.2.1) (2026-01-27)
 
 
