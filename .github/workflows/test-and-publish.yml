@@ -1,4 +1,4 @@
-name: CI workflow
+name: CI-CD workflow
 
 # Configures this workflow to run every time a change is pushed to the branch called `main`.
 on:
@@ -14,7 +14,7 @@ env:
 jobs:
   # 1. Check code quality in changed files
   qodana:
-    if: github.event_name != 'pull_request' || !startsWith(github.event.pull_request.title, 'chore(')
+    if: github.actor != 'release-please[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -39,6 +39,7 @@ jobs:
 
   # 2. Build, run tests and upload JAR artifact
   test:
+    needs: release-please
     runs-on: ubuntu-latest
 
     steps:
@@ -51,10 +52,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Run tests
+        run: mvn -B test --file anti-abuse-microservice/pom.xml
+
       - name: Build and run tests
-        run: mvn -B clean package --file anti-abuse-microservice/pom.xml
+        if: needs.release-please.outputs.release_created == 'true'
+        run: mvn -B package -DskipTests --file anti-abuse-microservice/pom.xml
 
       - name: Upload JAR artifact
+        if: needs.release-please.outputs.release_created == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: app-jar
@@ -123,17 +129,39 @@ jobs:
             ghcr.io/${{ github.repository }}:latest
           labels: ${{ steps.meta.outputs.labels }}
 
-#      - name: Generate artifact attestation
-#        uses: actions/attest-build-provenance@v3
-#        with:
-#          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
-#          subject-digest: ${{ steps.push.outputs.digest }}
-#          push-to-registry: true
+  # 5. Deploy to DigitalOcean staging environment
+  deploy-staging:
+    needs: [ release-please, build-and-push-image ]
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
 
-#      - name: Deploy to Kubernetes
-#        run: |
-#          kubectl set image deployment/my-app \
-#            my-container=ghcr.io/${{ github.repository }}:${{ needs.release-please.outputs.tag_name }}
-#          kubectl rollout status deployment/my-app
-#        env:
-#          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+    steps:
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'latest'
+
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.DO_KUBECONFIG_STAGING }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Verify cluster connection
+        run: kubectl cluster-info
+
+      - name: Update deployment image
+        run: |
+          kubectl set image deployment/anti-abuse-service \
+            anti-abuse-service=ghcr.io/${{ github.repository }}:${{ needs.release-please.outputs.tag_name }}
+
+      - name: Wait for rollout to complete
+        run: |
+          set -e
+          kubectl rollout status deployment/anti-abuse-service --timeout=10m
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "Rollout failed — rolling back"
+          kubectl rollout undo deployment/anti-abuse-service
